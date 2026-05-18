@@ -17,11 +17,12 @@ async def relay_log(data: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 def run_server():
-    uvicorn.run(app, host="0.0.0.0", port=8501)
+    # CHANGED PORT TO 8000 TO AVOID STREAMLIT CONFLICT
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if "server_started" not in streamlit_app.session_state:
     streamlit_app.session_state.server_started = True
     threading.Thread(target=run_server, daemon=True).start()
 
 streamlit_app.title("KgHamster Relay Status")
-streamlit_app.write("Hamster Relay Active")
+streamlit_app.write("The backend error logging relay is active.")
