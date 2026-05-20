@@ -8,6 +8,10 @@ app = FastAPI()
 
 TARGET_URL = "https://pages.dev"
 
+@app.get("/healthz")
+async def health_check():
+    return {"status": "ok"}
+
 @app.post("/relay")
 async def relay_log(data: dict):
     try:
@@ -17,12 +21,11 @@ async def relay_log(data: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 def run_server():
-    # CHANGED PORT TO 8000 TO AVOID STREAMLIT CONFLICT
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
 if "server_started" not in streamlit_app.session_state:
     streamlit_app.session_state.server_started = True
     threading.Thread(target=run_server, daemon=True).start()
 
 streamlit_app.title("KgHamster Relay Status")
-streamlit_app.write("The backend error logging relay is active.")
+streamlit_app.write("The backend is active")
