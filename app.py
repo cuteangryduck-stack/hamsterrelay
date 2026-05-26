@@ -1,51 +1,59 @@
 import streamlit as streamlit_app
 import requests
+import traceback
 
 TARGET_URL = "https://kghamster.pages.dev/api/ingest"
 
 ctx = getattr(streamlit_app, "context", None)
 req = getattr(ctx, "incoming_request", None) if ctx else None
 
-if req and req.method == "POST" and req.path.startswith("/relay"):
+print("CTX:", ctx)
+print("REQ:", req)
+
+if req:
+    print("METHOD:", req.method)
+    print("PATH:", req.path)
+    print("HEADERS:", dict(req.headers))
+
+if req and req.method == "POST":
     try:
-        data = req.json_body or {}
+        raw_body = req.body
 
-        forward_headers = {}
+        print("RAW BODY:", raw_body)
 
-        for header in [
-            "Authorization",
-            "Content-Type",
-            "User-Agent",
-            "Accept",
-            "X-Forwarded-For",
-            "CF-Connecting-IP",
-        ]:
-            value = req.headers.get(header)
-            if value:
-                forward_headers[header] = value
+        headers = {}
+
+        auth = req.headers.get("Authorization")
+        if auth:
+            headers["Authorization"] = auth
 
         response = requests.post(
             TARGET_URL,
-            json=data,
-            headers=forward_headers,
+            data=raw_body,
+            headers=headers,
             timeout=10,
         )
 
-        streamlit_app.set_page_config(layout="raw")
+        print("FORWARDED:", response.status_code)
+        print(response.text)
+
         streamlit_app.write({
-            "status": "forwarded",
+            "status": "ok",
             "code": response.status_code,
             "response": response.text,
         })
+
         streamlit_app.stop()
 
     except Exception as e:
-        streamlit_app.set_page_config(layout="raw")
+        print("ERROR:")
+        traceback.print_exc()
+
         streamlit_app.write({
             "status": "error",
-            "detail": str(e)
+            "detail": str(e),
         })
+
         streamlit_app.stop()
 
-streamlit_app.title("KgHamster Relay Status")
-streamlit_app.write("Relay running")
+streamlit_app.title("Relay running")
