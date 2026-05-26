@@ -6,7 +6,7 @@ TARGET_URL = "https://kghamster.pages.dev/api/ingest"
 ctx = getattr(streamlit_app, "context", None)
 req = getattr(ctx, "incoming_request", None) if ctx else None
 
-if req and req.method == "POST" and req.path == "/relay":
+if req and req.method == "POST" and req.path.startswith("/relay"):
     try:
         data = req.json_body or {}
 
